@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  server:
+    build: .
+    container_name: scraper_server
+    # Server command (keeps the URL)
+    command: --mode server --url https://www.dlsu.edu.ph --duration 60 --port 50000
+    ports:
+      - "50000:50000"
+    volumes:
+      - ./scraped_data:/app/output
+    networks:
+      - scraping_net
+
+  client:
+    build: .
+    container_name: scraper_client_1
+    # --- CHANGED: Added --url argument so client knows the domain ---
+    command: --mode client --url https://www.dlsu.edu.ph --ip server --port 50000 --procs 2
+    networks:
+      - scraping_net
+    restart: on-failure 
+    depends_on:
+      - server
+
+  client_2:
+    build: .
+    container_name: scraper_client_2
+    # --- CHANGED: Added --url argument ---
+    command: --mode client --url https://www.dlsu.edu.ph --ip server --port 50000 --procs 2
+    networks:
+      - scraping_net
+    restart: on-failure
+    depends_on:
+      - server
+
+networks:
+  scraping_net:
